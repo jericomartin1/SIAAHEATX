@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customers - Heat-X</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <h1>Heat-X Aircon</h1>
+      <p>Services Management System</p>
+      <nav><a href="index.html">Dashboard</a><a href="customers.html" class="on">Customers</a><a href="technicians.html">Technicians</a><a href="bookings.html">Bookings</a><a href="tracking.html">Service Tracking</a><a href="inventory.html">Inventory</a><a href="transactions.html">Transactions</a><a href="documents.html">Documents</a><a href="notifications.html">Notifications</a></nav>
+    </aside>
+    <main>
+    <h2>Customers</h2>
+    <section class="panel">
+      <h3 id="formTitle">Add new record</h3>
+      <form id="recordForm" onsubmit="saveRecord(event)">
+        <div class="formgrid">
+          <label>Name<input type="text" id="name" required></label>
+          <label>Mobile number<input type="tel" id="phone" required></label>
+          <label>Email<input type="email" id="email" required></label>
+          <label>Address<input type="text" id="address" required></label>
+        </div>
+        <button type="submit">Save</button>
+        <button type="button" class="gray" onclick="cancelEdit()">Clear</button>
+      </form>
+    </section>
+    <section class="panel">
+      <h3>All records</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Name</th><th>Mobile number</th><th>Email</th><th>Address</th><th>Actions</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+    </main>
+  </div>
+  <script src="script.js"></script>
+  <script>
+var listName = "customers";
+var editId = null;
+
+// Show all records in the table
+function showTable() {
+  var list = getList(listName);
+  var html = "";
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i];
+    html += "<tr>";
+    html += "<td>" + r.name + "</td>";
+    html += "<td>" + r.phone + "</td>";
+    html += "<td>" + r.email + "</td>";
+    html += "<td>" + r.address + "</td>";
+    html += "<td><button onclick='editRecord(" + r.id + ")'>Edit</button> <button class='danger' onclick='deleteRecord(" + r.id + ")'>Delete</button></td>";
+    html += "</tr>";
+  }
+  if (list.length == 0) {
+    html = "<tr><td colspan='5'>No records yet. Use the form to add one.</td></tr>";
+  }
+  document.getElementById("tableBody").innerHTML = html;
+}
+
+// Save the form (add a new record or update the one being edited)
+function saveRecord(event) {
+  event.preventDefault();
+  var list = getList(listName);
+  var record = {};
+  record.id = Date.now();
+  record.name = document.getElementById("name").value;
+  record.phone = document.getElementById("phone").value;
+  record.email = document.getElementById("email").value;
+  record.address = document.getElementById("address").value;
+
+  // if we are editing, find the old record and keep its id
+  var oldRecord = null;
+  if (editId != null) {
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id == editId) {
+        oldRecord = list[i];
+      }
+    }
+    record.id = editId;
+  }
+
+  if (editId == null) {
+    list.push(record);
+  } else {
+    for (var j = 0; j < list.length; j++) {
+      if (list[j].id == editId) {
+        list[j] = record;
+      }
+    }
+  }
+  saveList(listName, list);
+
+  cancelEdit();
+  showTable();
+}
+
+// Put a record back in the form so it can be changed
+function editRecord(id) {
+  var list = getList(listName);
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id == id) {
+      var r = list[i];
+      document.getElementById("name").value = r.name;
+      document.getElementById("phone").value = r.phone;
+      document.getElementById("email").value = r.email;
+      document.getElementById("address").value = r.address;
+      editId = id;
+      document.getElementById("formTitle").innerText = "Edit record";
+    }
+  }
+}
+
+// Delete a record
+function deleteRecord(id) {
+  if (confirm("Delete this record?") == false) {
+    return;
+  }
+  var list = getList(listName);
+  var newList = [];
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id != id) {
+      newList.push(list[i]);
+    }
+  }
+  saveList(listName, newList);
+  showTable();
+}
+
+// Clear the form
+function cancelEdit() {
+  editId = null;
+  document.getElementById("recordForm").reset();
+  document.getElementById("formTitle").innerText = "Add new record";
+}
+
+// Run when the page opens
+showTable();
+  </script>
+</body>
+</html>

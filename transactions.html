@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Transactions - Heat-X</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <h1>Heat-X Aircon</h1>
+      <p>Services Management System</p>
+      <nav><a href="index.html">Dashboard</a><a href="customers.html">Customers</a><a href="technicians.html">Technicians</a><a href="bookings.html">Bookings</a><a href="tracking.html">Service Tracking</a><a href="inventory.html">Inventory</a><a href="transactions.html" class="on">Transactions</a><a href="documents.html">Documents</a><a href="notifications.html">Notifications</a></nav>
+    </aside>
+    <main>
+      <h2>Transactions</h2>
+    <section class="box">
+      <h3 id="formTitle">Add new record</h3>
+      <form id="recordForm" onsubmit="saveRecord(event)">
+        <div class="formgrid">
+          <label>Booking<select id="booking"></select></label>
+          <label>Amount (PHP)<input type="number" id="amount" required></label>
+          <label>Date<input type="date" id="date" required></label>
+          <label>Notes<input type="text" id="note" required></label>
+        </div>
+        <button type="submit" class="p">Save</button>
+        <button type="button" onclick="cancelEdit()">Clear</button>
+      </form>
+    </section>
+    <section class="box">
+      <h3>All records</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Booking</th><th>Amount (PHP)</th><th>Date</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+    </main>
+  </div>
+  <script src="script.js"></script>
+  <script>
+var listName = "transactions";
+var editId = null;
+
+// Show all records in the table
+function showTable() {
+  var list = getList(listName);
+  var html = "";
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i];
+    html += "<tr>";
+    html += "<td>" + r.booking + "</td>";
+    html += "<td>" + r.amount + "</td>";
+    html += "<td>" + r.date + "</td>";
+    html += "<td>" + r.note + "</td>";
+    html += "<td><button onclick='editRecord(" + r.id + ")'>Edit</button> <button class='x' onclick='deleteRecord(" + r.id + ")'>Delete</button></td>";
+    html += "</tr>";
+  }
+  if (list.length == 0) {
+    html = "<tr><td colspan='5'>No records yet. Use the form to add one.</td></tr>";
+  }
+  document.getElementById("tableBody").innerHTML = html;
+}
+
+// Save the form (add a new record or update the one being edited)
+function saveRecord(event) {
+  event.preventDefault();
+  var list = getList(listName);
+  var record = {};
+  record.id = Date.now();
+  record.booking = document.getElementById("booking").value;
+  record.amount = Number(document.getElementById("amount").value);
+  record.date = document.getElementById("date").value;
+  record.note = document.getElementById("note").value;
+  if (record.booking == "") {
+    alert("Please add a booking first.");
+    return;
+  }
+
+  // if we are editing, find the old record and keep its id
+  var oldRecord = null;
+  if (editId != null) {
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id == editId) {
+        oldRecord = list[i];
+      }
+    }
+    record.id = editId;
+  }
+
+  if (editId == null) {
+    list.push(record);
+  } else {
+    for (var j = 0; j < list.length; j++) {
+      if (list[j].id == editId) {
+        list[j] = record;
+      }
+    }
+  }
+  saveList(listName, list);
+
+  cancelEdit();
+  showTable();
+}
+
+// Put a record back in the form so it can be changed
+function editRecord(id) {
+  var list = getList(listName);
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id == id) {
+      var r = list[i];
+      document.getElementById("booking").value = r.booking;
+      document.getElementById("amount").value = r.amount;
+      document.getElementById("date").value = r.date;
+      document.getElementById("note").value = r.note;
+      editId = id;
+      document.getElementById("formTitle").innerText = "Edit record";
+    }
+  }
+}
+
+// Delete a record
+function deleteRecord(id) {
+  if (confirm("Delete this record?") == false) {
+    return;
+  }
+  var list = getList(listName);
+  var newList = [];
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id != id) {
+      newList.push(list[i]);
+    }
+  }
+  saveList(listName, newList);
+  showTable();
+}
+
+// Clear the form
+function cancelEdit() {
+  editId = null;
+  document.getElementById("recordForm").reset();
+  document.getElementById("formTitle").innerText = "Add new record";
+}
+
+// Run when the page opens
+fillBookingSelect("booking");
+showTable();
+  </script>
+</body>
+</html>

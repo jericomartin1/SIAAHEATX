@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard - Heat-X</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body>
+    <div class="app">
+      <aside>
+        <h1>Heat-X Aircon</h1>
+        <p>Services Management System</p>
+        <nav>
+          <a href="index.html" class="on">Dashboard</a>
+          <a href="customers.html">Customers</a>
+          <a href="technicians.html">Technicians</a>
+          <a href="bookings.html">Bookings</a>
+          <a href="tracking.html">Service Tracking</a>
+          <a href="inventory.html">Inventory</a>
+          <a href="transactions.html">Transactions</a>
+          <a href="documents.html">Documents</a>
+          <a href="notifications.html">Notifications</a>
+        </nav>
+      </aside>
+
+      <main>
+      <h2>Dashboard</h2>
+
+      <div class="stats">
+        <div class="stat"><span id="customerCount">0</span>Customers</div>
+        <div class="stat"><span id="pendingCount">0</span>Pending</div>
+        <div class="stat"><span id="scheduledCount">0</span>Scheduled</div>
+        <div class="stat"><span id="ongoingCount">0</span>Ongoing</div>
+        <div class="stat"><span id="completedCount">0</span>Completed</div>
+        <div class="stat"><span id="revenue">0</span>Revenue (PHP)</div>
+      </div>
+
+      <section class="panel">
+        <h3>Parts to restock</h3>
+        <ul id="lowList"></ul>
+      </section>
+
+      <section class="panel">
+        <h3>Report</h3>
+        <button onclick="window.print()">Print report</button>
+      </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+      var customers = getList("customers");
+      var bookings = getList("bookings");
+      var transactions = getList("transactions");
+      var inventory = getList("inventory");
+
+      // Count the bookings per status
+      var pending = 0,
+        scheduled = 0,
+        ongoing = 0,
+        completed = 0;
+
+      for (var i = 0; i < bookings.length; i++) {
+        if (bookings[i].status == "Pending") {
+          pending++;
+        }
+        if (bookings[i].status == "Scheduled") {
+          scheduled++;
+        }
+        if (bookings[i].status == "Ongoing") {
+          ongoing++;
+        }
+        if (bookings[i].status == "Completed") {
+          completed++;
+        }
+      }
+
+      // Add up the transactions
+      var total = 0;
+      for (var j = 0; j < transactions.length; j++) {
+        total = total + transactions[j].amount;
+      }
+
+      // List the parts that are below the needed amount
+      var lowHtml = "";
+      for (var k = 0; k < inventory.length; k++) {
+        if (inventory[k].stock < inventory[k].needed) {
+          lowHtml +=
+            "<li>" +
+            inventory[k].item +
+            ": " +
+            inventory[k].stock +
+            " in stock, " +
+            inventory[k].needed +
+            " needed</li>";
+        }
+      }
+
+      if (lowHtml == "") {
+        lowHtml = "<li>All parts are sufficiently stocked.</li>";
+      }
+
+      document.getElementById("customerCount").innerText = customers.length;
+      document.getElementById("pendingCount").innerText = pending;
+      document.getElementById("scheduledCount").innerText = scheduled;
+      document.getElementById("ongoingCount").innerText = ongoing;
+      document.getElementById("completedCount").innerText = completed;
+      document.getElementById("revenue").innerText = total;
+      document.getElementById("lowList").innerHTML = lowHtml;
+    </script>
+  </body>
+</html>

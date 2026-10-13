@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Service Tracking - Heat-X</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <h1>Heat-X Aircon</h1>
+      <p>Services Management System</p>
+      <nav><a href="index.html">Dashboard</a><a href="customers.html">Customers</a><a href="technicians.html">Technicians</a><a href="bookings.html">Bookings</a><a href="tracking.html" class="on">Service Tracking</a><a href="inventory.html">Inventory</a><a href="transactions.html">Transactions</a><a href="documents.html">Documents</a><a href="notifications.html">Notifications</a></nav>
+    </aside>
+    <main>
+      <h2>Service Tracking</h2>
+    <div class="kan" id="board"></div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+  <script>
+var statuses = ["Pending", "Scheduled", "Ongoing", "Completed"];
+
+// Show the 4 columns with the bookings in each status
+function showBoard() {
+  var bookings = getList("bookings");
+  var html = "";
+  for (var s = 0; s < statuses.length; s++) {
+    html += "<div class='col'><h3>" + statuses[s] + "</h3>";
+    for (var i = 0; i < bookings.length; i++) {
+      var b = bookings[i];
+      if (b.status == statuses[s]) {
+        html += "<div class='card'><b>" + b.customer + "</b><br>" + b.service + "<br>" + b.date + " " + b.time + "<br>Technician: " + b.technician + "<br>";
+        if (s < 3) {
+          html += "<button class='p' onclick='moveForward(" + b.id + ", " + (s + 1) + ")'>Mark " + statuses[s + 1] + "</button>";
+        }
+        html += "</div>";
+      }
+    }
+    html += "</div>";
+  }
+  document.getElementById("board").innerHTML = html;
+}
+
+// Move a booking to the next status
+function moveForward(id, newIndex) {
+  var bookings = getList("bookings");
+  for (var i = 0; i < bookings.length; i++) {
+    if (bookings[i].id == id) {
+      var b = bookings[i];
+      var oldStatus = b.status;
+      b.status = statuses[newIndex];
+      var error = checkBooking(b, b.id);
+      if (error != "") {
+        b.status = oldStatus;
+        alert(error);
+        return;
+      }
+      saveList("bookings", bookings);
+      sendNotification(b, "status");
+    }
+  }
+  showBoard();
+}
+
+showBoard();
+  </script>
+</body>
+</html>

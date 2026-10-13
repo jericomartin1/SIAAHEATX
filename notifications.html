@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Notifications - Heat-X</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <h1>Heat-X Aircon</h1>
+      <p>Services Management System</p>
+      <nav><a href="index.html">Dashboard</a><a href="customers.html">Customers</a><a href="technicians.html">Technicians</a><a href="bookings.html">Bookings</a><a href="tracking.html">Service Tracking</a><a href="inventory.html">Inventory</a><a href="transactions.html">Transactions</a><a href="documents.html">Documents</a><a href="notifications.html" class="on">Notifications</a></nav>
+    </aside>
+    <main>
+      <h2>Notifications</h2>
+    <section class="box">
+      <h3>Automatic notifications</h3>
+      <label><input type="checkbox" id="rule_confirm" onchange="saveRules()"> Booking confirmation</label>
+      <label><input type="checkbox" id="rule_change" onchange="saveRules()"> Schedule change</label>
+      <label><input type="checkbox" id="rule_status" onchange="saveRules()"> Status update</label>
+      <label><input type="checkbox" id="rule_remind" onchange="saveRules()"> Appointment reminder</label>
+      <br>
+      <button class="p" onclick="sendReminders()">Send reminders for tomorrow</button>
+    </section>
+    <section class="box">
+      <h3>Notification log</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Sent</th><th>Channel</th><th>To</th><th>Message</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+      <p class="note">SMS and email are simulated here. Real sending needs a backend with an SMS gateway and an email service.</p>
+    </section>
+    </main>
+  </div>
+  <script src="script.js"></script>
+  <script>
+function showRules() {
+  var rules = getRules();
+  document.getElementById("rule_confirm").checked = rules.confirm;
+  document.getElementById("rule_change").checked = rules.change;
+  document.getElementById("rule_status").checked = rules.status;
+  document.getElementById("rule_remind").checked = rules.remind;
+}
+
+function saveRules() {
+  var rules = {};
+  rules.confirm = document.getElementById("rule_confirm").checked;
+  rules.change = document.getElementById("rule_change").checked;
+  rules.status = document.getElementById("rule_status").checked;
+  rules.remind = document.getElementById("rule_remind").checked;
+  localStorage.setItem("rules", JSON.stringify(rules));
+}
+
+function showLog() {
+  var log = getList("notifications");
+  var html = "";
+  for (var i = 0; i < log.length; i++) {
+    html += "<tr><td>" + log[i].time + "</td><td>" + log[i].channel + "</td><td>" + log[i].to + "</td><td>" + log[i].message + "</td></tr>";
+  }
+  if (log.length == 0) {
+    html = "<tr><td colspan='4'>No notifications yet.</td></tr>";
+  }
+  document.getElementById("logBody").innerHTML = html;
+}
+
+// Send a reminder for every Scheduled booking happening tomorrow
+function sendReminders() {
+  var t = new Date();
+  t.setDate(t.getDate() + 1);
+  var month = String(t.getMonth() + 1);
+  var day = String(t.getDate());
+  if (month.length == 1) { month = "0" + month; }
+  if (day.length == 1) { day = "0" + day; }
+  var tomorrow = t.getFullYear() + "-" + month + "-" + day;
+
+  var bookings = getList("bookings");
+  var count = 0;
+  for (var i = 0; i < bookings.length; i++) {
+    if (bookings[i].date == tomorrow && bookings[i].status == "Scheduled") {
+      sendNotification(bookings[i], "remind");
+      count++;
+    }
+  }
+  if (count == 0) {
+    alert("No scheduled services for tomorrow.");
+  }
+  showLog();
+}
+
+showRules();
+showLog();
+  </script>
+</body>
+</html>
